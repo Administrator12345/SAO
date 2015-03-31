@@ -1,0 +1,78 @@
+# ******************************************************************************
+# Nombre_Programa:		consulta_disper_cheque.per
+# Nombre_del_equipo:   
+# ******************************************************************************
+
+SCHEMA dsipe
+
+    
+LAYOUT( TEXT="Dispersión  Cheques de Primeros Pagos")
+VBOX
+GRID
+   {
+   [titulo                                                    ]
+   [L001                                                      ]
+   }
+END 
+  GRID 
+  {
+  <G gb3                                                                                                                                 >
+   [aa0      ] [aa1        ]                [aa2      ] [aa3          ]                [aa4      ] [aa5               ]
+   [aa8      ] [aa9                               ]           [ab0      ] [ab1                               ]
+}
+END
+
+ group (text="Resultados")
+    TABLE   Record1
+   {
+   [ab2   |ab3   |ab4                |ab5                 |ab6                 |ab7                 |ab8                 |ab9                 |ab10                 |ab11                 |ab14                 |ab13                 |ab12]
+   [ab2   |ab3   |ab4                |ab5                 |ab6                 |ab7                 |ab8                 |ab9                 |ab10                 |ab11                 |ab14                 |ab13                 |ab12]
+   [ab2   |ab3   |ab4                |ab5                 |ab6                 |ab7                 |ab8                 |ab9                 |ab10                 |ab11                 |ab14                 |ab13                 |ab12]
+   [ab2   |ab3   |ab4                |ab5                 |ab6                 |ab7                 |ab8                 |ab9                 |ab10                 |ab11                 |ab14                 |ab13                 |ab12]
+   [ab2   |ab3   |ab4                |ab5                 |ab6                 |ab7                 |ab8                 |ab9                 |ab10                 |ab11                 |ab14                 |ab13                 |ab12]
+   [ab2   |ab3   |ab4                |ab5                 |ab6                 |ab7                 |ab8                 |ab9                 |ab10                 |ab11                 |ab14                 |ab13                 |ab12]
+   [ab2   |ab3   |ab4                |ab5                 |ab6                 |ab7                 |ab8                 |ab9                 |ab10                 |ab11                 |ab14                 |ab13                 |ab12]
+   }
+ END
+ END  
+  END -- GRID
+END
+
+TABLES cuenta_sir,c_deleg
+
+ATTRIBUTES
+  LABEL titulo:titulo, TEXT="Información General Dispersión de Cheques", STYLE="titulo"; 
+  LABEL L001:subtitulo, TEXT="Seleccione los criterios de búsqueda", STYLE="subtitulo";
+
+  GROUP gb3 : gb3, TEXT="Criterios de Búsqueda";
+  LABEL aa0:lb14, TEXT="Delegación :", JUSTIFY=LEFT;
+  EDIT aa1=FORMONLY.desc_deleg, TABINDEX=1;
+  LABEL aa2:lb15, TEXT="fecha de Proceso :", JUSTIFY=LEFT;
+  EDIT aa3=FORMONLY.fecha_proceso, TABINDEX=2,UPSHIFT;
+  LABEL aa4:lb16, TEXT="Número de Issste :", JUSTIFY=LEFT;
+  EDIT aa5=FORMONLY.num_issste, TABINDEX=3,UPSHIFT;
+  LABEL aa8:lb18, TEXT="Usuario :", JUSTIFY=LEFT;
+  EDIT aa9=FORMONLY.usuario, TABINDEX=4,UPSHIFT; 
+  LABEL ab0:lb19, TEXT="Número de Pensión :", JUSTIFY=LEFT;
+  EDIT ab1=FORMONLY.num_pension, TABINDEX=5,UPSHIFT;
+  
+  --TABLE tb2 : tb2;
+    EDIT ab3=cuenta_sir.id_cuenta_sir,UPSHIFT,NOENTRY,JUSTIFY=LEFT, TABINDEX=7, TITLE="Id";
+    EDIT ab4=cuenta_sir.spe_id, UPSHIFT,NOENTRY,JUSTIFY=LEFT,TABINDEX=8, TITLE="Spe_Id";
+    EDIT ab5=cuenta_sir.num_tarjeta,UPSHIFT,NOENTRY,JUSTIFY=LEFT, TABINDEX=9, TITLE="Número de Cuenta";
+    EDIT ab6=cuenta_sir.clabe,UPSHIFT,NOENTRY,JUSTIFY=LEFT, TABINDEX=10, TITLE="Cuenta Clabe";
+    EDIT ab7=c_deleg.desc_deleg,UPSHIFT,NOENTRY,JUSTIFY=LEFT, TABINDEX=11, TITLE="Delegación";
+    EDIT ab8=cuenta_sir.num_pension,UPSHIFT,NOENTRY,JUSTIFY=LEFT, TABINDEX=12, TITLE="Número de Pensión";
+    EDIT ab9=cuenta_sir.num_issste,UPSHIFT,NOENTRY,JUSTIFY=LEFT, TABINDEX=13, TITLE="Número de Issste";
+    EDIT ab10=cuenta_sir.neto_pagar,FORMAT = "$ ###,###,##&.&&",UPSHIFT,NOENTRY,JUSTIFY=LEFT, TABINDEX=14, TITLE="Importe";
+    EDIT ab11=cuenta_sir.fecha_proceso,UPSHIFT,NOENTRY,JUSTIFY=LEFT, TABINDEX=15, TITLE="Fecha de Proceso";
+    EDIT ab12=cuenta_sir.reg_enviado, HIDDEN;
+    EDIT ab13=cuenta_sir.usuario,UPSHIFT,NOENTRY,JUSTIFY=LEFT, TABINDEX=22, TITLE="Usuario";
+    EDIT ab14= FORMONLY.reg_enviado_des,UPSHIFT,NOENTRY,JUSTIFY=LEFT, TABINDEX=23, TITLE="Estatus de Envio";
+    CHECKBOX ab2 = FORMONLY.seleccion, TITLE ="Seleccione...", TABINDEX=1;
+END
+
+INSTRUCTIONS
+  SCREEN RECORD tb2 (cuenta_sir.id_cuenta_sir,cuenta_sir.spe_id, cuenta_sir.num_tarjeta, cuenta_sir.clabe, c_deleg.desc_deleg, cuenta_sir.num_pension, cuenta_sir.num_issste, cuenta_sir.neto_pagar, cuenta_sir.fecha_proceso,cuenta_sir.reg_enviado, cuenta_sir.usuario,reg_enviado_des,seleccion) 
+  SCREEN RECORD Record1(cuenta_sir.id_cuenta_sir,cuenta_sir.spe_id, cuenta_sir.num_tarjeta, cuenta_sir.clabe, c_deleg.desc_deleg, cuenta_sir.num_pension, cuenta_sir.num_issste, cuenta_sir.neto_pagar, cuenta_sir.fecha_proceso,cuenta_sir.reg_enviado, cuenta_sir.usuario,reg_enviado_des,seleccion)
+END
