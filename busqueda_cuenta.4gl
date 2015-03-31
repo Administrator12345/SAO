@@ -41,20 +41,12 @@ FUNCTION datos_nominapp(ldateFecFinCal,ldateFecIniCal)
         desc_deleg         	VARCHAR(100),
         num_pension      	INTEGER,
         num_issste          INTEGER,
-        neto_pagar   	DECIMAL(12,2),
+        neto_pagar   	    DECIMAL(12,2),
         fecha_proceso    	DATE,
         reg_enviado      	INTEGER,
-        --fecha_enviado    	DATE,
-        --reg_transferido  	INTEGER,
-        --fecha_transferido	DATE,
-        --reg_cancelado    	INTEGER,
-        --fecha_cancelado  	DATE,
         usuario          	CHAR(8),
+        reg_enviado_des     VARCHAR(20),
         seleccion      	    INTEGER
-        --fecha_aud        	DATE,
-        --hora_aud         	CHAR(8),
-        --componente_cve   	CHAR(8),
-        --ip_maquina       	CHAR(15)
 END RECORD
 
     DEFINE list1 DYNAMIC ARRAY OF RECORD
@@ -65,20 +57,12 @@ END RECORD
         desc_deleg         	VARCHAR(100),
         num_pension      	INTEGER,
         num_issste          INTEGER,
-        neto_pagar   	DECIMAL(12,2),
+        neto_pagar   	    DECIMAL(12,2),
         fecha_proceso    	DATE,
         reg_enviado      	INTEGER,
-        --fecha_enviado    	DATE,
-        --reg_transferido  	INTEGER,
-        --fecha_transferido	DATE,
-        --reg_cancelado    	INTEGER,
-        --fecha_cancelado  	DATE,
         usuario          	CHAR(8),
+        reg_enviado_des     VARCHAR(20),
         seleccion      	    INTEGER
-        --fecha_aud        	DATE,
-        --hora_aud         	CHAR(8),
-        --componente_cve   	CHAR(8),
-        --ip_maquina       	CHAR(15)
 END RECORD
     DEFINE 
         id_cuenta_sir1       INTEGER,
@@ -88,7 +72,7 @@ END RECORD
         desc_deleg         	VARCHAR(100),
         num_pension      	INTEGER,
         num_issste          INTEGER,
-        neto_pagar1  	DECIMAL(12,2),
+        neto_pagar1  	    DECIMAL(12,2),
         fecha_proceso    	DATE,
         reg_enviado1      	INTEGER,
         fecha_enviado1    	DATE,
@@ -123,8 +107,9 @@ END RECORD
     LET gcve_deleg = ARG_VAL(2)
    
    DISPLAY "El usuario", gusuari
+   --DISPLAY "la DELEGACION ES :",gcve_deleg
+  -- DISPLAY "la DELEGACION ES :",gcve_deleg
    DISPLAY "la DELEGACION ES :",gcve_deleg
-
     
    
    SET ISOLATION TO DIRTY READ
@@ -159,7 +144,8 @@ END RECORD
                                          WHERE fecha_enviado is null
                                          AND cs.dis_cve = cd.cve_deleg 
                                          AND fecha_proceso BETWEEN to_date('", ldateFecIniCal, "','%d/%m/%Y') 
-                                         AND to_date('",ldateFecFinCal,"','%d/%m/%Y')"
+                                         AND to_date('",ldateFecFinCal,"','%d/%m/%Y')
+                                        ORDER BY id_cuenta_sir"
                 ELSE
         LET query = "SELECT cs.id_cuenta_sir,
                                 cs.spe_id,
@@ -177,7 +163,8 @@ END RECORD
                          AND cs.dis_cve = cd.cve_deleg
                          AND cs.dis_cve = ", cve_deleg, " 
                          AND fecha_proceso BETWEEN to_date('", ldateFecIniCal, "','%d/%m/%Y') 
-                         AND to_date('",ldateFecFinCal,"','%d/%m/%Y')"
+                         AND to_date('",ldateFecFinCal,"','%d/%m/%Y')
+                         ORDER BY id_cuenta_sir"
                 END IF
                               DISPLAY "query: " , query
                               PREPARE prepareQuery FROM query
@@ -230,6 +217,13 @@ END RECORD
 
                               
 			FOR I=1 TO list1.getlength()
+            IF list1[I].reg_enviado = 1 THEN 
+                LET list1[I].reg_enviado_des = 'PARA ENVÍO'
+            END IF 
+              IF list1[I].reg_enviado = 0 THEN 
+                LET list1[I].reg_enviado_des = 'DETENIDO'
+            END IF
+            
 				IF list1[I].seleccion <>list1[I].reg_enviado THEN
 					LET list1[I].seleccion=list1[I].reg_enviado
 				END IF
@@ -270,7 +264,7 @@ END RECORD
                                     --IF list1[iterador].seleccion <> 2 THEN
                                        DISPLAY list1[iterador].id_cuenta_sir,list1[iterador].seleccion,list1[iterador].spe_id,list1[iterador].num_issste,list1[iterador].num_pension
                                        DISPLAY "CALL ACTUALIZA ",list1[iterador].id_cuenta_sir,list1[iterador].seleccion,list1[iterador].spe_id,list1[iterador].num_issste,list1[iterador].num_pension
-                                       CALL ActualizaEstatusCuenta(list1[iterador].id_cuenta_sir,list1[iterador].seleccion,list1[iterador].spe_id,list1[iterador].num_issste,list1[iterador].num_pension ) RETURNING lsm_actual
+                                       CALL ActualizaEstatusCuenta(list1[iterador].id_cuenta_sir,list1[iterador].seleccion,list1[iterador].spe_id,list1[iterador].num_issste,list1[iterador].num_pension,list1[iterador].reg_enviado_des ) RETURNING lsm_actual
                                        DISPLAY "SE VA **************** ",lsm_actual
                                        --LET lsm_actual = TRUE
                                        IF lsm_actual THEN
@@ -278,6 +272,7 @@ END RECORD
                                        ELSE 
                                           EXIT FOR	
                                        END IF
+                                       CALL UI.interface.refresh()
 									--END IF
                                --END IF--LET lsi_while=FALSE
                             END FOR
@@ -285,6 +280,7 @@ END RECORD
 							IF li_suma=list1.getlength() THEN 
 							   COMMIT WORK
 								 CALL FGL_WINMESSAGE( "Información","Los datos se almacenaron con exito ", "information")
+                                 CALL UI.interface.refresh()
                  LET lsi_while=FALSE
 								-- EXIT INPUT	
 							ELSE
@@ -302,9 +298,9 @@ END RECORD
 							FOR iterador = 1 TO list1.getlength()
 							   --IF seleccion = 1 THEN 
                                     --IF list1[iterador].seleccion <> 2 THEN
-                                       DISPLAY list1[iterador].id_cuenta_sir,list1[iterador].seleccion,list1[iterador].spe_id,list1[iterador].num_issste,list1[iterador].num_pension
-                                       DISPLAY "CALL ACTUALIZA ",list1[iterador].id_cuenta_sir,list1[iterador].seleccion,list1[iterador].spe_id,list1[iterador].num_issste,list1[iterador].num_pension
-                                       CALL ActualizaEstatusCuenta(list1[iterador].id_cuenta_sir,list1[iterador].seleccion,list1[iterador].spe_id,list1[iterador].num_issste,list1[iterador].num_pension ) RETURNING lsm_actual
+                                       DISPLAY list1[iterador].id_cuenta_sir,list1[iterador].seleccion,list1[iterador].spe_id,list1[iterador].num_issste,list1[iterador].num_pension,list1[iterador].reg_enviado_des
+                                       DISPLAY "CALL ACTUALIZA ",list1[iterador].id_cuenta_sir,list1[iterador].seleccion,list1[iterador].spe_id,list1[iterador].num_issste,list1[iterador].num_pension,list1[iterador].reg_enviado_des
+                                       CALL ActualizaEstatusCuenta(list1[iterador].id_cuenta_sir,list1[iterador].seleccion,list1[iterador].spe_id,list1[iterador].num_issste,list1[iterador].num_pension,list1[iterador].reg_enviado_des ) RETURNING lsm_actual
                                        DISPLAY "SE VA **************** ",lsm_actual
                                        --LET lsm_actual = TRUE
                                        IF lsm_actual THEN
@@ -312,6 +308,7 @@ END RECORD
                                        ELSE 
                                           EXIT FOR	
                                        END IF
+                                       CALL UI.interface.refresh()
 									--END IF
                                --END IF--LET lsi_while=FALSE
                             END FOR
@@ -319,6 +316,7 @@ END RECORD
 							IF li_suma=list1.getlength() THEN 
 							   COMMIT WORK
 								 CALL FGL_WINMESSAGE( "Información","Los datos se almacenaron con exito ", "information")
+                                 CALL UI.interface.refresh()
                  LET lsi_while=FALSE
 								 EXIT INPUT	
 							ELSE
@@ -362,7 +360,7 @@ END RECORD
         
 END FUNCTION
 
-FUNCTION ActualizaEstatusCuenta(id_cuenta_sir,seleccion,spe_id,num_issste,num_pension ) 
+FUNCTION ActualizaEstatusCuenta(id_cuenta_sir,seleccion,spe_id,num_issste,num_pension,reg_envio_des ) 
     DEFINE 
         id_cuenta_sir       INTEGER,
         spe_id           	INTEGER,
@@ -384,7 +382,8 @@ FUNCTION ActualizaEstatusCuenta(id_cuenta_sir,seleccion,spe_id,num_issste,num_pe
         hora_aud         	CHAR(8),
         componente_cve   	CHAR(8),
         ip_maquina       	CHAR(15),
-        seleccion      	    INTEGER
+        seleccion      	    INTEGER,
+        reg_envio_des       VARCHAR(20)
 
 
   
@@ -524,6 +523,7 @@ FUNCTION buscarCuenta(query,list1,cve_deleg,ldateFecFinCal,ldateFecIniCal)
         --reg_cancelado    	INTEGER,
         --fecha_cancelado  	DATE,
         usuario          	CHAR(8),
+        reg_enviado_des     VARCHAR(20),
         seleccion      	    INTEGER
         --fecha_aud        	DATE,
         --hora_aud         	CHAR(8),
@@ -547,6 +547,7 @@ DEFINE list11 RECORD
         --reg_cancelado    	INTEGER,
         --fecha_cancelado  	DATE,
         usuario          	CHAR(8),
+        reg_enviado_des     VARCHAR(20),
         seleccion      	    INTEGER
         --fecha_aud        	DATE,
         --hora_aud         	CHAR(8),
@@ -584,7 +585,8 @@ END RECORD
                          WHERE fecha_enviado is null
                          AND cs.dis_cve = cd.cve_deleg
                          AND fecha_proceso BETWEEN to_date('", ldateFecIniCal, "','%d/%m/%Y') 
-                         AND to_date('",ldateFecFinCal,"','%d/%m/%Y')"
+                         AND to_date('",ldateFecFinCal,"','%d/%m/%Y')
+                         ORDER BY id_cuenta_sir"
     ELSE
    DISPLAY "delegacion diferente a 40" 
         LET query_aux = "SELECT cs.id_cuenta_sir,
@@ -603,7 +605,8 @@ END RECORD
                          AND cs.dis_cve = cd.cve_deleg
                          AND cs.dis_cve = ", cve_deleg," 
                          AND fecha_proceso BETWEEN to_date('", ldateFecIniCal, "','%d/%m/%Y') 
-                         AND to_date('",ldateFecFinCal,"','%d/%m/%Y')"
+                         AND to_date('",ldateFecFinCal,"','%d/%m/%Y')
+                         ORDER BY id_cuenta_sir"
     END IF
     LET query_aux = query_aux , query
     DISPLAY query_aux
@@ -625,6 +628,12 @@ END RECORD
         DISPLAY list11.*
         CALL list1.appendElement()
         LET list1[list1.getLength()].* = list11.*
+        IF list11.reg_enviado = 1 THEN
+            LET list11.reg_enviado_des = 'Para Envío'
+        ELSE
+            LET list11.reg_enviado_des = 'Detenido'
+        END IF
+        LET cont=cont+1
         END FOREACH
     SET ISOLATION TO COMMITTED READ --Add 24/Marzo/2010
     CALL list1.deleteelement(cont)
@@ -753,13 +762,13 @@ FUNCTION Formato_Cuenta(dispersion)
     LET renglon = renglon || completar_cadena_layout("0",dispersion.lintlocId,7)
         
         # 7 Total percepcion
-    LET renglon = renglon || completar_cadena_layout("0",dispersion.lvDecTotPerc,9)
+    LET renglon = renglon || completar_cadena_layout("0",dispersion.lvDecTotPerc,11)
         
         # 8 Total Deduccion
-    LET renglon = renglon || completar_cadena_layout("0",dispersion.lvDecTotDeduc,9)
+    LET renglon = renglon || completar_cadena_layout("0",dispersion.lvDecTotDeduc,11)
         
         # 9 Neto a pagar
-    LET renglon = renglon || completar_cadena_layout("0",dispersion.lvDecTotal,9)
+    LET renglon = renglon || completar_cadena_layout("0",dispersion.lvDecTotal,11)
         
         # 10 Numero de tarjeta
     LET renglon = renglon ||  dispersion.num_cuenta
